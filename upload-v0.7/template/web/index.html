@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Policy Tool</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <div class="bar-text">
+    <h1 id="title"></h1>
+    <p id="subtitle"></p>
+  </div>
+  <nav class="mode" aria-label="Role">
+    <span id="mode-label"></span>
+    <button id="easy-toggle" class="easy-toggle" hidden aria-pressed="false">Aa Easy read</button>
+    <button id="help-btn" class="easy-toggle" hidden>? How it works</button>
+    <a id="switch-role" href="?">Switch role</a>
+  </nav>
+</header>
+<div id="toast" class="toast" hidden role="status"></div>
+
+<!-- Start screen: choose who you are (every launch). -->
+<div id="start" class="overlay start" hidden>
+  <div class="overlay-box">
+    <h2>Who are you?</h2>
+    <a class="big-choice" href="?mode=residents">🏠 I live here<span>Flood zones, essential safety info, messages from authorities</span></a>
+    <a class="big-choice easy-choice" href="?mode=residents&amp;easy=1">♿ I live here: easy read<span>Big text, strong colours, everything read aloud</span></a>
+    <a class="big-choice" href="?mode=policy">🏛️ Policy maker<span>Analysis, story, and (verified) messages to residents</span></a>
+  </div>
+</div>
+
+<!-- Policy makers: what this app does, in 30 seconds (first open, then the "? How it works" button). -->
+<div id="intro" class="overlay intro" hidden>
+  <div class="overlay-box">
+    <h2 id="intro-title"></h2>
+    <ol id="intro-steps" class="intro-steps"></ol>
+    <button id="intro-close" class="big-button">Go to the map</button>
+  </div>
+</div>
+
+<!-- Residents: essentials, shown every time the residents side opens. -->
+<div id="essentials" class="overlay essentials" hidden>
+  <!-- 18-second animation (motion/, Remotion), then the one-screen card. -->
+  <div id="ess-video-wrap" class="ess-video-wrap" hidden>
+    <video id="ess-video" muted playsinline preload="auto"></video>
+    <div class="ess-video-bar">
+      <div class="lang-row" id="lang-row" aria-label="Language"></div>
+      <button id="ess-skip" class="skip">Skip ›</button>
+    </div>
+  </div>
+  <div id="ess-card" class="overlay-box">
+    <h2>In a flood</h2>
+    <ul id="essentials-list" class="ess-tiles"></ul>
+    <p class="essentials-source" id="essentials-source"></p>
+    <button id="ess-read" class="read-aloud">🔊 Read aloud</button>
+    <button id="essentials-close" class="big-button">Show the map</button>
+  </div>
+</div>
+
+<main class="layout">
+  <div id="map" aria-label="Map"></div>
+
+  <div id="story" class="story" hidden aria-live="polite">
+    <div class="story-text">
+      <p class="story-title" id="story-title"></p>
+      <p id="story-text"></p>
+    </div>
+    <div class="story-nav">
+      <button id="story-back" aria-label="Previous step">‹ Back</button>
+      <span id="story-count"></span>
+      <button id="story-next" aria-label="Next step">Next ›</button>
+    </div>
+  </div>
+
+  <aside id="sheet" class="sheet" data-state="peek" aria-label="Details">
+    <button class="handle" id="handle" aria-label="Expand or collapse panel"><span></span></button>
+    <div class="sheet-body">
+      <!-- Residents: the 3 things people need, first. -->
+      <section id="res-actions" class="res-actions" hidden aria-label="Main actions">
+        <button id="find-shelter" class="action primary">📍 Closest shelter</button>
+        <button id="goto-big3" class="action">💧⚡🔥 Water, power, gas</button>
+        <button id="show-essentials" class="action">🔊 What to do</button>
+        <button id="demo-loc" class="action demo" hidden>📍 You're outside our data area: use a DEMO location (Visé)</button>
+      </section>
+
+      <section id="shelter-box" class="shelter-box" hidden aria-labelledby="h-shelter" aria-live="polite">
+        <h2 id="h-shelter">Closest candidate shelters</h2>
+        <p class="shelter-warn">Not official. Your municipality and BE-Alert announce the real reception centres: check before you go. The road there may be flooded. In danger: call 112.</p>
+        <ol id="shelter-list" class="shelter-list"></ol>
+        <p class="status-note" id="shelter-note"></p>
+      </section>
+
+      <section id="big3" class="big3" hidden aria-labelledby="h-big3">
+        <h2 id="h-big3">Water, electricity, gas</h2>
+        <p class="status-note" id="place-hint"></p>
+        <label class="field">My municipality <select id="my-place"></select></label>
+        <div class="tiles" id="tiles"></div>
+        <p class="status-note" id="status-note"></p>
+      </section>
+
+      <section id="inbox" class="inbox" hidden aria-labelledby="h-inbox">
+        <h2 id="h-inbox">Messages from authorities</h2>
+        <ul id="inbox-list"></ul>
+      </section>
+
+      <section id="residents" class="residents" hidden aria-labelledby="h-residents">
+        <h2 id="h-residents">Stay safe</h2>
+        <ul id="advice"></ul>
+        <ul id="res-links" class="res-links"></ul>
+        <button id="demo-alert" class="demo-alert">Send a demo alert</button>
+      </section>
+
+      <section aria-labelledby="h-numbers">
+        <h2 id="h-numbers">Key numbers</h2>
+        <div id="numbers" class="numbers"></div>
+      </section>
+
+      <section id="selected" class="selected" hidden aria-labelledby="h-selected">
+        <h2 id="h-selected">Selected</h2>
+        <dl id="selected-props"></dl>
+      </section>
+
+      <section class="rec" aria-labelledby="h-rec">
+        <h2 id="h-rec">Recommendation</h2>
+        <p class="rec-actor" id="rec-actor"></p>
+        <p class="rec-action" id="rec-action"></p>
+        <p class="rec-why" id="rec-why"></p>
+      </section>
+
+      <!-- Secondary sections: folded, one-line summary each. -->
+      <section aria-labelledby="h-layers">
+        <details class="fold">
+          <summary><h2 id="h-layers">Layers</h2><span>Switch map layers on and off</span></summary>
+          <ul id="layers" class="layers"></ul>
+        </details>
+      </section>
+
+      <section id="send" class="send" hidden aria-labelledby="h-send">
+        <details class="fold">
+        <summary><h2 id="h-send">Inform residents (verified)</h2><span>Message + water, power, gas status</span></summary>
+        <label class="field">Verification code <input id="code" type="password" autocomplete="off"></label>
+        <label class="field">Message to all residents <textarea id="msg" maxlength="280" rows="3"></textarea></label>
+        <button id="send-msg" class="big-button">Send message</button>
+        <h3>Water, electricity, gas</h3>
+        <label class="field">Municipality <select id="set-place"></select></label>
+        <div class="set-row" id="set-row"></div>
+        <label class="field">Note (optional) <input id="set-note" maxlength="280"></label>
+        <button id="send-status" class="big-button">Update status</button>
+        <p class="send-result" id="send-result" role="status"></p>
+        </details>
+      </section>
+
+      <section id="chat" class="chat" hidden aria-labelledby="h-chat">
+        <details class="fold">
+        <summary><h2 id="h-chat">Crisis chat</h2><span>Policy makers only, needs the code</span></summary>
+        <label class="field">I write as <select id="chat-from"></select></label>
+        <ul id="chat-list" class="chat-list" aria-live="polite"></ul>
+        <div class="chat-send">
+          <input id="chat-text" maxlength="280" placeholder="Message to other policy makers">
+          <button id="chat-btn">Send</button>
+        </div>
+        <p class="send-result" id="chat-result" role="status"></p>
+        </details>
+      </section>
+
+      <section class="limits" aria-labelledby="h-limits">
+        <details class="fold">
+          <summary><h2 id="h-limits">Limits of this app</h2><span>What the data cannot show</span></summary>
+          <ul id="limits"></ul>
+        </details>
+      </section>
+
+      <section class="sources" aria-labelledby="h-sources">
+        <details class="fold">
+          <summary><h2 id="h-sources">Sources</h2><span>Where every number comes from</span></summary>
+          <ol id="sources"></ol>
+        </details>
+      </section>
+
+      <section id="relay" class="relay" hidden>
+        <details class="fold">
+          <summary><h2>Demo server</h2><span id="relay-state" class="relay-state"></span></summary>
+          <label class="field">Address <input id="relay-url"></label>
+        </details>
+      </section>
+    </div>
+  </aside>
+</main>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="content.js"></script>
+<script src="content.residents.js"></script>
+<script src="variant.js"></script>
+<script src="data/layers.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

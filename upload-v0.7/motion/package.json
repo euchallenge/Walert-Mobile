@@ -1,0 +1,16 @@
+{
+  "name": "team4-essentials-motion",
+  "private": true,
+  "description": "18-second 'what to do in a flood' animation for the residents side of the Team 4 app (Remotion).",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:en": "remotion render Essentials out/essentials-en.mp4 --props={\"lang\":\"en\"} --codec=h264 --crf=28",
+    "poster:en": "remotion still Essentials out/essentials-en.png --props={\"lang\":\"en\"} --frame=520"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.242",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.242"
+  }
+}
