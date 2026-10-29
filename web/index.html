@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Policy Tool</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <div class="bar-text">
+    <h1 id="title"></h1>
+    <p id="subtitle"></p>
+  </div>
+</header>
+
+<main class="layout">
+  <div id="map" aria-label="Map"></div>
+
+  <div id="story" class="story" hidden aria-live="polite">
+    <div class="story-text">
+      <p class="story-title" id="story-title"></p>
+      <p id="story-text"></p>
+    </div>
+    <div class="story-nav">
+      <button id="story-back" aria-label="Previous step">‹ Back</button>
+      <span id="story-count"></span>
+      <button id="story-next" aria-label="Next step">Next ›</button>
+    </div>
+  </div>
+
+  <aside id="sheet" class="sheet" data-state="peek" aria-label="Details">
+    <button class="handle" id="handle" aria-label="Expand or collapse panel"><span></span></button>
+    <div class="sheet-body">
+      <section aria-labelledby="h-numbers">
+        <h2 id="h-numbers">Key numbers</h2>
+        <div id="numbers" class="numbers"></div>
+      </section>
+
+      <section id="selected" class="selected" hidden aria-labelledby="h-selected">
+        <h2 id="h-selected">Selected</h2>
+        <dl id="selected-props"></dl>
+      </section>
+
+      <section aria-labelledby="h-layers">
+        <h2 id="h-layers">Layers</h2>
+        <ul id="layers" class="layers"></ul>
+      </section>
+
+      <section class="rec" aria-labelledby="h-rec">
+        <h2 id="h-rec">Recommendation</h2>
+        <p class="rec-actor" id="rec-actor"></p>
+        <p class="rec-action" id="rec-action"></p>
+        <p class="rec-why" id="rec-why"></p>
+      </section>
+
+      <section class="limits" aria-labelledby="h-limits">
+        <h2 id="h-limits">Limits of this tool</h2>
+        <ul id="limits"></ul>
+      </section>
+
+      <section class="sources" aria-labelledby="h-sources">
+        <h2 id="h-sources">Sources</h2>
+        <ol id="sources"></ol>
+      </section>
+    </div>
+  </aside>
+</main>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="content.js"></script>
+<script src="data/layers.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
