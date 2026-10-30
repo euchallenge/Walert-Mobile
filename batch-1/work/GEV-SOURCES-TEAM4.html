@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>GEV sources - Team 4</title>
+<style>
+@page { size: A4; margin: 14mm 14mm 14mm 14mm; }
+body { font-family: "Segoe UI", Arial, sans-serif; font-size: 9.3pt; color: #1b1f24; line-height: 1.35; }
+h1 { font-size: 15pt; margin: 0 0 2px; color: #0b3d6e; }
+.meta { color: #555; font-size: 8.5pt; margin-bottom: 8px; }
+h2 { font-size: 11pt; color: #0b3d6e; border-bottom: 1.5px solid #0b3d6e; padding-bottom: 2px; margin: 12px 0 5px; }
+table { border-collapse: collapse; width: 100%; font-size: 8.4pt; margin-bottom: 4px; }
+th, td { border: 1px solid #c8ced6; padding: 3px 5px; vertical-align: top; text-align: left; }
+th { background: #e8eef5; }
+a { color: #0b57d0; word-break: break-all; }
+ul, ol { margin: 3px 0 3px 18px; padding: 0; }
+li { margin-bottom: 2px; }
+.box { border: 1.5px solid #b45309; background: #fff7ed; padding: 5px 8px; margin: 6px 0; }
+.ok { color: #166534; font-weight: 600; }
+.warn { color: #b45309; font-weight: 600; }
+code { font-family: Consolas, monospace; font-size: 8.2pt; background: #f1f3f5; padding: 0 2px; }
+.small { font-size: 8pt; color: #555; }
+</style></head><body>
+
+<h1>Extreme-value (GEV) flood statistics: data and sources</h1>
+<div class="meta">Team 4 &nbsp;|&nbsp; Wallonia + Liège–Maastricht–Aachen triangle &nbsp;|&nbsp; All links opened on 29 Oct 2026 &nbsp;|&nbsp; <b>External sources, NOT challenge data</b> (Annex 2 "EFAS" = hazard maps, a different product)</div>
+
+<div class="box"><b>Wording for the brief:</b> GEV estimates <i>how rare</i> a flood is (its return period) under an assumed stable climate. It does <b>not</b> predict floods. Say "how rare" or "return period", never "prediction".</div>
+
+<h2>1. Usable datasets, best first for a one-day build</h2>
+<table>
+<tr><th>Gauge / area</th><th>Source</th><th>Years, time step</th><th>Access</th></tr>
+<tr><td><b>Vesdre – Chaudfontaine (6228)</b><br>Ourthe – Tabreux (5921)<br>Amblève – Martinrive (6621)<br>Meuse – Lixhe (5436)</td>
+<td>SPW Wallonia hydrometry, KiWIS web service<br><a href="https://hydrometrie.wallonie.be/">hydrometrie.wallonie.be</a></td>
+<td>Annual max from 1967 / 1969 / 1974 / 1996 (60 / 58 / 53 / 31 yrs). Hourly, daily and hydrological-year max also available.</td>
+<td>JSON, no login. <span class="ok">Tested from Python.</span> Licence not verified.</td></tr>
+<tr><td><b>Meuse – Borgharen Dorp, Sint Pieter Noord</b> (NL)</td>
+<td>Rijkswaterstaat DDL, Python package <code>rws-ddlpy</code><br><a href="https://deltares.github.io/ddlpy/">deltares.github.io/ddlpy</a></td>
+<td>Daily means from at least 1980 (start not verified); sub-daily for 2021.</td>
+<td>No key. <span class="ok">Tested.</span></td></tr>
+<tr><td><b>Inde – Eschweiler</b>, Rur, Wurm (DE)</td>
+<td>LANUK NRW checked discharge series<br><a href="https://www.opengeodata.nrw.de/produkte/umwelt_klima/wasser/oberflaechengewaesser/hydro/q/">opengeodata.nrw.de/…/hydro/q/</a></td>
+<td>1950s–2020s, ~10–15 min.</td>
+<td>CSV, open licence (DL-DE Zero 2.0). <span class="ok">Tested.</span> Wurm (Herzogenrath 2): July 2021 peak missing.</td></tr>
+<tr><td>Rainfall return levels, <b>Jalhay</b></td>
+<td>RMI / KMI IDF table<br><a href="https://opendata.meteo.be/ftp/climate/extreme_precipitations/IDF_table_INS63038_fr.pdf">opendata.meteo.be/…/IDF_table_INS63038_fr.pdf</a></td>
+<td>10 min – 30 days, 2–200 yr, with 95% CI.</td><td>PDF, open.</td></tr>
+<tr><td>July 2021 rain gauges + RADFLOOD21 radar</td>
+<td>RMI case page<br><a href="https://opendata.meteo.be/cases/202107.php">opendata.meteo.be/cases/202107.php</a></td>
+<td>13–16 July 2021</td><td>Open (Zenodo; licence not checked).</td></tr>
+<tr><td>Modelled discharge, whole area</td>
+<td>EFAS historical (CEMS)<br><a href="https://ewds.climate.copernicus.eu/datasets/efas-historical">ewds.climate.copernicus.eu/datasets/efas-historical</a></td>
+<td>1992 – now, 6-hourly, ~1.5 km</td><td><span class="warn">Needs EWDS account.</span></td></tr>
+<tr><td>Gridded rainfall</td>
+<td>E-OBS v33.0e<br><a href="https://surfobs.climate.copernicus.eu/dataaccess/access_eobs.php">surfobs.climate.copernicus.eu</a></td>
+<td>1950–2025, daily, 0.1°</td><td>NetCDF, non-commercial use only.</td></tr>
+<tr><td>German design rainfall</td>
+<td>DWD KOSTRA-DWD-2020<br><a href="https://opendata.dwd.de/climate_environment/CDC/grids_germany/return_periods/precipitation/KOSTRA/">opendata.dwd.de/…/KOSTRA/</a></td>
+<td>Not checked</td><td>Open directory.</td></tr>
+</table>
+<p class="small"><b>Not usable in one day / not verified:</b> GRDC (data by request), EStreams (11.5 GB, CC BY-NC, Belgian coverage not verified), Geul at Meerssen (no open download found), WVER and KNMI portals.</p>
+
+<h2>2. Published numbers to compare against</h2>
+<ul>
+<li><b>ENW, "Hoogwater 2021 – Feiten en Duiding", §2.4 pp. 21–22</b> – <a href="https://www.enwinfo.nl/publish/pages/183541/211102_enw_hoogwater_2021-dv-def.pdf">enwinfo.nl (PDF)</a><br>
+Borgharen, annual maxima (GEV, Gumbel, GRADE): <b>~1:100 to 1:200 yr</b>. Summer half-year GEV: <b>~1:600</b> (CI ~1:100 to 1:10,000). Sint Pieter peak 3,260 m³/s (3,200–3,400), p. 30. Geul, Geleenbeek, Roer: 1:100 to 1:1,000.</li>
+<li><b>Rijkswaterstaat, "Analyse hoogwater Maas juli 2021"</b> – <a href="https://open.rijkswaterstaat.nl/@151977/analyse-hoogwater-maas-juli-2021/">open.rijkswaterstaat.nl</a><br>
+Borgharen Dorp peak <b>~3,284 m³/s</b>, about <b>1:125 yr</b> (official working curve).</li>
+<li><b>Journée et al. 2023, HESS 27:3169 (RMI)</b> – <a href="https://hess.copernicus.org/articles/27/3169/2023/">hess.copernicus.org/articles/27/3169/2023</a><br>
+1–3-day totals well above the 200-yr level, <b>up to +90%</b> for 2–3-day totals in the Vesdre basin. Up to 3 h: ≤ 1:30 yr. So: <b>long soaking rain, not a cloudburst</b>. RMI 200-yr levels for Jalhay: 108.8 mm (1 d), 138.6 mm (2 d), 150.6 mm (3 d).</li>
+<li><b>Tradowsky et al. 2023, Climatic Change 176:90</b> (peer-reviewed World Weather Attribution study) – <a href="https://doi.org/10.1007/s10584-023-03502-7">doi.org/10.1007/s10584-023-03502-7</a><br>
+Regionally ≥ 1 in 400 yr; climate change made the rain <b>1.2–9× more likely</b> and <b>3–19% heavier</b>. No local Meuse return periods.</li>
+<li><b>Rongen et al. 2024, HESS 28:2831</b> – <a href="https://hess.copernicus.org/articles/28/2831/2024/">hess.copernicus.org/articles/28/2831/2024</a><br>
+Borgharen: 120 yr (annual max) and 600 yr (summer). These "were derived including the July 2021 event itself"; before the event it would have looked rarer.</li>
+<li><b>Ludwig et al. 2023, NHESS 23:1287</b> (Ahr, Germany: method example only) – <a href="https://nhess.copernicus.org/articles/23/1287/2023/">nhess.copernicus.org/articles/23/1287/2023</a><br>
+Adding historical floods back to 1804 changes the return period a lot (Altenahr ~HQ10,000).</li>
+<li><b>Wallonia, "Annexe F – Ajustement GEV" (Oct 2021)</b> – <a href="https://www.wallonie.be/sites/default/files/2021-10/annexe_f_-_analyse_gev.pdf">wallonie.be (PDF)</a><br>
+14 pages of GEV plots per gauge (hourly discharge, 95% CI, 2021 peak). Plots only, no tables; parent report not named.</li>
+</ul>
+<p class="small"><b>Not verified:</b> Dewals et al. 2021 (Water), not opened; Chaudfontaine Q100 ≈ 255 m³/s (symposium slide only); Deltares/RWS "Evaluation of discharge extremes in the Meuse" (Dec 2023), results not read.</p>
+
+<h2>3. Traps to state in the brief</h2>
+<ol>
+<li><b>Chaudfontaine 2021 is an estimate.</b> SPW stores 676.5 m³/s; the gauge went off its scale, and ENW gives ~520 m³/s (model estimate).</li>
+<li><b>Daily means hide the peak.</b> Borgharen: 3,017 (daily mean) vs 3,284 m³/s (peak). Prefer hourly/instant maxima.</li>
+<li><b>Record length.</b> With 50–60 years, anything beyond ~1:200 is very uncertain (RMI stops at 200 yr). Always show a confidence range.</li>
+<li><b>Fit with and without 2021</b> and show both.</li>
+<li><b>Block choice matters</b> (calendar year, hydrological year from 1 Nov, summer half-year). Say which one you used.</li>
+<li><b>scipy sign:</b> <code>scipy.stats.genextreme</code> uses c = −ξ. A heavy tail (ξ &gt; 0) appears as c &lt; 0.</li>
+</ol>
+
+<h2>4. Minimal plan (one day)</h2>
+<ol>
+<li><b>Gauges:</b> Vesdre at Chaudfontaine (strongest story), Ourthe at Tabreux (2021: 542 m³/s vs 433 in 1993), Meuse at Borgharen (cross-border, has published numbers). Optional: Inde at Eschweiler (329.5 m³/s in July 2021).</li>
+<li><b>Fetch:</b> one KiWIS request per Walloon gauge (annual or hydrological-year max); <code>ddlpy</code> for Borgharen.</li>
+<li><b>Fit:</b> <code>genextreme.fit</code> without 2021, then with 2021; return period of the 2021 peak T = 1 / (1 − F(x)); 1,000 bootstrap resamples for the CI.</li>
+<li><b>Check:</b> compare with ENW and Rijkswaterstaat (Borgharen) and Annexe F (Wallonia). Log the comparison in the AI sheet.</li>
+</ol>
+<p class="small">Sources found with AI help (Claude) and each one opened and checked on 29 Oct 2026. Researchers: re-open and cite every source with URL and access date before using it in the brief (Annex 3).</p>
+</body></html>
