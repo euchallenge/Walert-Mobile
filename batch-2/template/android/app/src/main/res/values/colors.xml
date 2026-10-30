@@ -1,0 +1,4 @@
+<resources>
+    <!-- Adaptive launcher icon background (work/make_icon.py draws the foreground). -->
+    <color name="icon_background">#FFFFFF</color>
+</resources>

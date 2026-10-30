@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>walert</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="style.css">
+<script>
+  // While the map data loads (several seconds on a slow phone): never a white page. The start screen shows
+  // the walert logo from the first frame (style.css "first-open"); other launches get a navy screen
+  // ("booting"). app.js removes both classes once it takes over.
+  try {
+    document.documentElement.classList.add(/[?&]mode=/.test(location.search) ? "booting" : "first-open");
+  } catch (e) { /* no early screen */ }
+</script>
+</head>
+<body>
+<header class="bar">
+  <img class="bar-mark" src="media/walert-mark.png" alt="walert">
+  <div class="bar-text">
+    <h1 id="title"></h1>
+    <p id="subtitle"></p>
+  </div>
+  <nav class="mode" aria-label="Role">
+    <span id="mode-label" class="role-chip"></span>
+    <button id="help-btn" class="pill-btn" hidden aria-label="How it works">? Help</button>
+    <a id="switch-role" class="pill-btn" href="?">Switch role</a>
+  </nav>
+</header>
+<div id="toast" class="toast" hidden role="status"></div>
+
+<!-- Start screen (every launch). First open on this phone: language -> video in that language -> "Who are you?".
+     The language is remembered, so in a crisis the app opens straight in it. -->
+<div id="start" class="overlay start" hidden>
+  <div class="overlay-box">
+    <div class="brand"><img src="media/walert-logo.png" alt="walert"></div>
+    <section id="start-lang" class="start-step" hidden aria-labelledby="h-lang">
+      <h2 id="h-lang">Choose your language</h2>
+      <p class="start-sub">Choisissez votre langue · Kies uw taal · Wählen Sie Ihre Sprache</p>
+      <div id="lang-grid" class="lang-grid"></div>
+    </section>
+    <section id="start-who" class="start-step" aria-labelledby="h-who">
+      <h2 id="h-who">Who are you?</h2>
+      <div class="big-choice res-choice" id="res-choice">
+        <button id="res-open" class="choice-head" aria-expanded="false" aria-controls="res-more">
+          <span class="choice-icon" aria-hidden="true">🏠</span>
+          <span class="choice-text"><span id="who-live">I live here</span><small id="who-live-sub">Flood zones, closest shelter, who to call, messages from authorities</small></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </button>
+        <div id="res-more" class="res-more" hidden>
+          <label class="switch">
+            <input type="checkbox" id="start-easy">
+            <span class="switch-track" aria-hidden="true"></span>
+            <span class="switch-text"><span id="start-easy-label">♿ Elderly or disabled</span><small id="start-easy-sub">Big text, read aloud, routes without stairs</small></span>
+          </label>
+          <a id="res-go" class="big-button go" href="?mode=residents">Continue ›</a>
+        </div>
+      </div>
+      <a class="big-choice" href="?mode=policy">
+        <span class="choice-head">
+          <span class="choice-icon" aria-hidden="true">🏛️</span>
+          <span class="choice-text"><span id="who-policy">Policy maker</span><small id="who-policy-sub">The July 2021 story in 4 steps, then verified messages to residents</small></span>
+          <span class="chev" aria-hidden="true">›</span>
+        </span>
+      </a>
+      <button id="start-watch" class="watch"><span id="watch-text">▶ What to do in a flood</span> <span id="watch-lang"></span></button>
+      <button id="start-offline" class="watch watch-small" hidden></button>
+    </section>
+  </div>
+</div>
+
+<!-- Residents: what still works without internet (banner, start screen). Filled by app.js in the chosen language. -->
+<div id="offline" class="overlay offline" hidden>
+  <div class="overlay-box">
+    <h2 id="off-title"></h2>
+    <p id="off-intro" class="hint"></p>
+    <div id="off-body" class="off-body"></div>
+    <button id="off-back" class="big-button"></button>
+  </div>
+</div>
+
+<!-- Policy makers: what this app does, in 30 seconds (first open, then the "? How it works" button). -->
+<div id="intro" class="overlay intro" hidden>
+  <div class="overlay-box">
+    <h2 id="intro-title"></h2>
+    <ol id="intro-steps" class="intro-steps"></ol>
+    <button id="intro-close" class="big-button">Go to the map</button>
+  </div>
+</div>
+
+<!-- Residents: essentials, shown every time the residents side opens. -->
+<div id="essentials" class="overlay essentials" hidden>
+  <!-- 18-second animation (motion/, Remotion), then the one-screen card. -->
+  <div id="ess-video-wrap" class="ess-video-wrap" hidden>
+    <video id="ess-video" playsinline preload="auto"></video>
+    <div class="ess-video-bar">
+      <div class="lang-row" id="lang-row" aria-label="Language"></div>
+      <button id="ess-sound" class="sound" aria-label="Sound off" aria-pressed="false">🔊</button>
+      <button id="ess-skip" class="skip">Skip ›</button>
+    </div>
+  </div>
+  <div id="ess-card" class="overlay-box">
+    <h2 id="ess-title">In a flood</h2>
+    <ul id="essentials-list" class="ess-tiles"></ul>
+    <p class="essentials-source" id="essentials-source"></p>
+    <label class="switch on-dark">
+      <input type="checkbox" id="ess-easy">
+      <span class="switch-track" aria-hidden="true"></span>
+      <span class="switch-text"><span id="ess-easy-label">♿ Elderly or disabled</span><small id="ess-easy-sub">Big text, read aloud, routes without stairs</small></span>
+    </label>
+    <button id="ess-read" class="read-aloud">🔊 Read aloud</button>
+    <button id="essentials-close" class="big-button">Show the map</button>
+  </div>
+</div>
+
+<main class="layout">
+  <div id="map" aria-label="Map"></div>
+
+  <div id="story" class="story" hidden aria-live="polite">
+    <div class="story-text">
+      <p class="story-title" id="story-title"></p>
+      <p id="story-text"></p>
+    </div>
+    <div class="story-nav">
+      <button id="story-back" aria-label="Previous step">‹ Back</button>
+      <span id="story-count" class="story-dots" aria-live="polite"></span>
+      <button id="story-next" aria-label="Next step">Next ›</button>
+    </div>
+  </div>
+
+  <button id="story-replay" class="story-replay" hidden>▶ Briefing</button>
+
+  <aside id="sheet" class="sheet" data-state="peek" aria-label="Details">
+    <button class="handle" id="handle" aria-label="Expand or collapse panel"><span></span></button>
+    <div class="sheet-body">
+      <!-- No internet: the residents' banner opens the "No internet" screen (the map note is on the map, app.js) -->
+      <button id="offline-banner" class="net-banner" hidden></button>
+      <!-- Residents: the 3 things people need, first. -->
+      <section id="res-actions" class="res-actions" hidden aria-label="Main actions">
+        <button id="find-shelter" class="action primary">📍 Closest shelter</button>
+        <button id="goto-big3" class="action">💧⚡🔥 Water, power, gas</button>
+        <button id="goto-inbox" class="action">📨 Messages</button>
+        <button id="demo-loc" class="action demo" hidden>📍 You're outside our data area: use a DEMO location (Visé)</button>
+      </section>
+
+      <section id="shelter-box" class="shelter-box" hidden aria-labelledby="h-shelter" aria-live="polite">
+        <h2 id="h-shelter">Closest candidate shelter</h2>
+        <!-- Follows the "Elderly or disabled" choice (start screen / "In a flood" card): no extra switch here -->
+        <input type="checkbox" id="no-stairs" hidden>
+        <p id="stairs-tag" class="stairs-tag" hidden>♿ Without stairs (your setting)</p>
+        <p class="shelter-warn">Not official. Your municipality and BE-Alert announce the real reception centres: check before you go. The road there may be flooded. In danger: call 112.</p>
+        <ol id="shelter-list" class="shelter-list"></ol>
+        <p class="status-note" id="shelter-note"></p>
+      </section>
+
+      <section id="big3" class="big3" hidden aria-labelledby="h-big3">
+        <h2 id="h-big3">Water, electricity, gas</h2>
+        <p class="status-note" id="place-hint"></p>
+        <label class="field">My municipality <select id="my-place"></select></label>
+        <div class="tiles" id="tiles"></div>
+        <p class="status-note" id="status-note"></p>
+      </section>
+
+      <section id="inbox" class="inbox" hidden aria-labelledby="h-inbox">
+        <h2 id="h-inbox">Messages from authorities</h2>
+        <p class="hint">Check them on BE-Alert or your municipality's official channels.</p>
+        <ul id="inbox-list"></ul>
+      </section>
+
+      <section id="residents" class="residents" hidden aria-labelledby="h-residents">
+        <h2 id="h-residents">Official advice</h2>
+        <button id="show-essentials" class="replay-link">▶ What to do in a flood (18 s video)</button>
+        <ul id="advice"></ul>
+        <ul id="res-links" class="res-links"></ul>
+        <button id="demo-alert" class="demo-alert">Send a demo alert</button>
+      </section>
+
+      <section aria-labelledby="h-numbers">
+        <h2 id="h-numbers">Key numbers</h2>
+        <!-- Computed numbers (data/impact.js): scope once above, the check and the sources once below the cards -->
+        <p id="numbers-scope" class="hint numbers-scope" hidden>66 Walloon municipalities · 1-in-100-year flood</p>
+        <div id="numbers" class="numbers"></div>
+        <p id="numbers-check" class="numbers-check" hidden>✓ Checked: recomputed independently; equals the sum of the 66 municipality cards.</p>
+        <details id="numbers-src" class="numbers-src" hidden>
+          <summary>Sources</summary>
+          <p id="numbers-src-text"></p>
+        </details>
+      </section>
+
+      <section id="impact-box" class="impact-box" hidden aria-labelledby="h-impact">
+        <h2 id="h-impact">Impact by municipality</h2>
+        <label class="field">Municipality, most exposed first <select id="impact-place"></select></label>
+        <div id="impact" class="impact"></div>
+      </section>
+      <section id="selected" class="selected" hidden aria-labelledby="h-selected">
+        <h2 id="h-selected">Selected</h2>
+        <dl id="selected-props"></dl>
+      </section>
+
+      <!-- Policy side only: the team's recommendation (content.js "recommendation"; hidden when null) -->
+      <section id="rec" class="rec" hidden aria-labelledby="h-rec">
+        <h2 id="h-rec">Our recommendation</h2>
+        <p class="rec-actor" id="rec-actor"></p>
+        <details class="rec-more">
+          <summary>What and why</summary>
+          <p class="rec-action" id="rec-action"></p>
+          <p class="rec-why" id="rec-why"></p>
+        </details>
+      </section>
+
+      <!-- Policy side only: the teammate's triage of all municipalities (data/risks.js), filled by app.js -->
+      <section id="priorities" class="prio-box" hidden aria-labelledby="h-prio">
+        <h2 id="h-prio">Priority issues</h2>
+        <div id="triage"></div>
+        <details class="prio-how">
+          <summary>How priorities are set</summary>
+          <p>Screening thresholds per municipality and scenario (assumptions, adjustable in
+            <code>pipeline/build_risks.py</code>). People = residents of flood cells.</p>
+          <ul>
+            <li><b>No dry route:</b> 🔴 ≥ 1,000 people, or ≥ 30% and ≥ 200 · 🟠 ≥ 200, or ≥ 10% and ≥ 50 · 🟡 any</li>
+            <li><b>No usable shelter</b> while people live in flood cells: 🔴</li>
+            <li><b>Shelter capacity gap</b> (people ÷ rough usable capacity): 🔴 &gt; 100% · 🟠 &gt; 50% · 🟡 &gt; 25%</li>
+            <li><b>Overloaded shelters</b> (people above capacity): 🔴 ≥ 1,000 or ≥ 50% · 🟠 ≥ 200 or ≥ 20% · 🟡 any</li>
+            <li><b>Elderly (65+) in flood cells:</b> 🔴 ≥ 1,000 · 🟠 ≥ 300 · 🟡 any</li>
+            <li><b>No step-free route (PRM):</b> 🔴 ≥ 500 · 🟠 ≥ 100 · 🟡 any</li>
+            <li><b>Walk &gt; 30 min to a dry shelter:</b> 🔴 ≥ 500 · 🟠 ≥ 100 · 🟡 any</li>
+            <li><b>Homes with no dry floor</b> (height ≤ cell depth + 1 m): 🔴 ≥ 500 · 🟠 ≥ 100 · 🟡 any</li>
+            <li><b>Hospital</b> in the extent: 🔴 not usable · 🟠 upper floors only</li>
+            <li><b>School</b> in the extent: 🟠 not usable · 🟡 upper floors only</li>
+            <li><b>Main roads / railway lines flooded:</b> 🟠 ≥ 20% of the mapped network · 🟡 any</li>
+            <li><b>Dams or weirs within ~2 km, data gaps</b> (no modelled river, &lt; 50% mapped): 🟡</li>
+          </ul>
+        </details>
+        <p class="impact-foot">The thresholds are screening assumptions from the team's analysis, not official standards.
+          Planning support, not official evacuation guidance.</p>
+      </section>
+
+      <!-- Policy side: the two main actions. One verification code (entered once, in "Inform residents") unlocks both. -->
+      <section id="send" class="send action-box" hidden aria-labelledby="h-send">
+        <h2 id="h-send">📣 Inform residents (verified)</h2>
+        <p class="box-tag">To all residents' phones</p>
+        <div class="code-row">
+          <label class="field">Verification code (also opens the Crisis center) <input id="code" type="password" autocomplete="off"></label>
+          <button id="code-ok" class="code-btn">Unlock</button>
+        </div>
+        <p class="send-result" id="code-state" role="status"></p>
+        <label class="field">From (the authority residents know) <input id="msg-from" maxlength="80" placeholder="e.g. Municipality of Visé"></label>
+        <label class="field">Message to all residents <textarea id="msg" maxlength="280" rows="3"></textarea></label>
+        <p class="msg-meta"><span class="hint">Say what to do, why, where and by when, in plain words. Mark what is not known yet.</span>
+          <span class="msg-count"><span id="msg-count">0 / 280</span><small id="msg-sms" title="Hint only: walert does not send SMS"></small></span></p>
+        <div class="preview" id="msg-preview">
+          <p class="preview-label">What residents get</p>
+          <div class="preview-card"><b id="pv-title"></b><span id="pv-text"></span></div>
+        </div>
+        <button id="send-msg" class="big-button">Send message</button>
+        <div id="send-confirm" class="confirm" hidden>
+          <p id="confirm-q" class="confirm-q"></p>
+          <div class="confirm-row"><button id="confirm-yes" class="big-button">Confirm</button><button id="confirm-no" class="code-btn">Cancel</button></div>
+        </div>
+        <p class="send-result" id="msg-result" role="status"></p>
+        <h3>Water, electricity, gas</h3>
+        <label class="field">Municipality <select id="set-place"></select></label>
+        <div class="set-row" id="set-row"></div>
+        <label class="field">Note (optional) <input id="set-note" maxlength="280"></label>
+        <button id="send-status" class="big-button">Update status</button>
+        <p class="send-result" id="send-result" role="status"></p>
+      </section>
+
+      <section id="chat" class="chat action-box" hidden aria-labelledby="h-chat">
+        <details class="fold" id="chat-fold">
+        <summary><h2 id="h-chat">🛡️ Crisis center <span id="chat-unread" class="unread" hidden></span></h2><span id="chat-sum">Private channel between policy makers: mayors, province and crisis centre. Residents never see it.</span><span id="chat-state" class="chat-state"></span></summary>
+        <p class="hint chat-lead">Coordinate here before you inform residents.</p>
+        <label class="field">I write as <select id="chat-from"></select></label>
+        <ul id="chat-list" class="chat-list" aria-live="polite"></ul>
+        <div class="chat-send">
+          <input id="chat-text" maxlength="280" placeholder="Message to the other policy makers" enterkeyhint="send">
+          <button id="chat-btn">Send</button>
+        </div>
+        <p class="send-result" id="chat-result" role="status"></p>
+        </details>
+      </section>
+
+      <!-- Secondary sections: folded, one-line summary each. -->
+      <section aria-labelledby="h-layers">
+        <details class="fold">
+          <summary><h2 id="h-layers">Layers</h2><span>Switch map layers on and off</span></summary>
+          <ul id="layers" class="layers"></ul>
+        </details>
+      </section>
+
+      <section class="limits" aria-labelledby="h-limits">
+        <details class="fold">
+          <summary><h2 id="h-limits">Limits of this app</h2><span>What the data cannot show</span></summary>
+          <ul id="limits"></ul>
+        </details>
+      </section>
+
+      <section class="sources" aria-labelledby="h-sources">
+        <details class="fold">
+          <summary><h2 id="h-sources">Sources</h2><span>Where every number comes from</span></summary>
+          <ol id="sources"></ol>
+        </details>
+      </section>
+
+      <section id="relay" class="relay" hidden>
+        <details class="fold">
+          <summary><h2>Demo server</h2><span id="relay-state" class="relay-state"></span></summary>
+          <label class="field">Address <input id="relay-url"></label>
+        </details>
+      </section>
+    </div>
+  </aside>
+</main>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="content.js"></script>
+<script src="content.residents.js"></script>
+<script src="variant.js"></script>
+<script src="data/layers.js"></script>
+<script src="data/access.js"></script>
+<script src="data/impact.js"></script>
+<script src="data/impact_map.js"></script>
+<script src="data/risks.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

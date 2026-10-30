@@ -1,0 +1,23 @@
+{
+  "name": "team4-essentials-motion",
+  "private": true,
+  "description": "18-second 'what to do in a flood' animation for the residents side of the Team 4 app (Remotion).",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:en": "remotion render Essentials out/essentials-en.mp4 --props='{\"lang\":\"en\"}' --codec=h264 --crf=28 --muted",
+    "poster:en": "remotion still Essentials out/essentials-en.png --props='{\"lang\":\"en\"}' --frame=520",
+    "render:fr": "remotion render Essentials out/essentials-fr.mp4 --props='{\"lang\":\"fr\"}' --codec=h264 --crf=28 --muted",
+    "poster:fr": "remotion still Essentials out/essentials-fr.png --props='{\"lang\":\"fr\"}' --frame=520",
+    "render:nl": "remotion render Essentials out/essentials-nl.mp4 --props='{\"lang\":\"nl\"}' --codec=h264 --crf=28 --muted",
+    "poster:nl": "remotion still Essentials out/essentials-nl.png --props='{\"lang\":\"nl\"}' --frame=520",
+    "render:de": "remotion render Essentials out/essentials-de.mp4 --props='{\"lang\":\"de\"}' --codec=h264 --crf=28 --muted",
+    "poster:de": "remotion still Essentials out/essentials-de.png --props='{\"lang\":\"de\"}' --frame=520",
+    "render:all": "npm run render:en && npm run render:fr && npm run render:nl && npm run render:de"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.242",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.242"
+  }
+}

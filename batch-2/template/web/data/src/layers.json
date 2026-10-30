@@ -1,0 +1,255 @@
+{
+  "gap_2021_rp100": {
+    "props": [
+      "label"
+    ],
+    "name": "Flooded in 2021 but outside the 100-year zone",
+    "color": "#6250d6",
+    "order": 6,
+    "fillOpacity": 0.7,
+    "weight": 1,
+    "visible": false
+  },
+  "municipalities": {
+    "name": "Municipalities: buildings in the 100-year zone",
+    "order": 1,
+    "props": [
+      "Municipality",
+      "Mapped by EMS",
+      "Buildings (OBAT)",
+      "In 2021 flood footprint",
+      "In 1-in-10-year zone",
+      "In 1-in-100-year zone",
+      "Share in 100-year zone",
+      "In 1-in-500-year zone",
+      "Residents in 100-year zone",
+      "of whom 65+",
+      "Aged 80+ (Statbel 2021)",
+      "EFAS model"
+    ],
+    "fillOpacity": 0.12,
+    "weight": 1.5,
+    "style": {
+      "by": "share_rp100",
+      "bins": [
+        0,
+        0.05,
+        0.15,
+        0.3
+      ],
+      "colors": [
+        "#b8bcc4",
+        "#fef0d9",
+        "#fdcc8a",
+        "#fc8d59",
+        "#d7301f"
+      ],
+      "labels": [
+        "No river modelled (not 'no risk')",
+        "< 5% of buildings",
+        "5-15%",
+        "15-30%",
+        "> 30%"
+      ]
+    }
+  },
+  "rp500": {
+    "name": "1-in-500-year flood (EFAS model)",
+    "order": 2,
+    "visible": false,
+    "props": [
+      "Water depth"
+    ],
+    "fillOpacity": 0.55,
+    "weight": 0,
+    "style": {
+      "by": "depth_class",
+      "classes": [
+        {
+          "value": 1,
+          "color": "#9ecae1",
+          "label": "< 0.5 m"
+        },
+        {
+          "value": 2,
+          "color": "#4292c6",
+          "label": "0.5-1.5 m"
+        },
+        {
+          "value": 3,
+          "color": "#2171b5",
+          "label": "1.5-3 m"
+        },
+        {
+          "value": 4,
+          "color": "#08306b",
+          "label": "> 3 m"
+        }
+      ]
+    },
+    "audience": "public"
+  },
+  "rp100": {
+    "name": "1-in-100-year flood (EFAS model)",
+    "order": 3,
+    "visible": true,
+    "props": [
+      "Water depth"
+    ],
+    "fillOpacity": 0.55,
+    "weight": 0,
+    "style": {
+      "by": "depth_class",
+      "classes": [
+        {
+          "value": 1,
+          "color": "#9ecae1",
+          "label": "< 0.5 m"
+        },
+        {
+          "value": 2,
+          "color": "#4292c6",
+          "label": "0.5-1.5 m"
+        },
+        {
+          "value": 3,
+          "color": "#2171b5",
+          "label": "1.5-3 m"
+        },
+        {
+          "value": 4,
+          "color": "#08306b",
+          "label": "> 3 m"
+        }
+      ]
+    },
+    "audience": "public"
+  },
+  "rp10": {
+    "name": "1-in-10-year flood (EFAS model)",
+    "order": 4,
+    "visible": false,
+    "props": [
+      "Water depth"
+    ],
+    "fillOpacity": 0.55,
+    "weight": 0,
+    "style": {
+      "by": "depth_class",
+      "classes": [
+        {
+          "value": 1,
+          "color": "#9ecae1",
+          "label": "< 0.5 m"
+        },
+        {
+          "value": 2,
+          "color": "#4292c6",
+          "label": "0.5-1.5 m"
+        },
+        {
+          "value": 3,
+          "color": "#2171b5",
+          "label": "1.5-3 m"
+        },
+        {
+          "value": 4,
+          "color": "#08306b",
+          "label": "> 3 m"
+        }
+      ]
+    },
+    "audience": "public"
+  },
+  "observed_2021": {
+    "props": [
+      "What"
+    ],
+    "name": "Flooded in July 2021 (Copernicus EMS)",
+    "order": 5,
+    "color": "#eb6834",
+    "fillOpacity": 0.6,
+    "weight": 0,
+    "audience": "public"
+  },
+  "gauges": {
+    "props": [
+      "Gauge",
+      "River",
+      "July 2021 peak",
+      "How rare (GEV fit)",
+      "Source"
+    ],
+    "name": "River gauges: how rare was July 2021?",
+    "order": 7,
+    "color": "#0b0b0b",
+    "visible": false
+  },
+  "shelters": {
+    "name": "Candidate shelters: schools, sports halls, churches, hospitals (not official)",
+    "order": 8,
+    "visible": false,
+    "props": [
+      "Name",
+      "Type",
+      "In a 1-in-100-year flood",
+      "In a 1-in-500-year flood",
+      "July 2021",
+      "Building height",
+      "Rough capacity, 1-in-100-year (assumption)",
+      "Wheelchair (OpenStreetMap)",
+      "Source"
+    ],
+    "radius": 5,
+    "style": {
+      "by": "shelter_rp100",
+      "classes": [
+        {
+          "value": "Dry: usable",
+          "color": "#0ca30c",
+          "label": "✓ Dry: usable"
+        },
+        {
+          "value": "Wet: upper floors usable",
+          "color": "#fab219",
+          "label": "↑ Wet: upper floors usable"
+        },
+        {
+          "value": "Wet: not usable",
+          "color": "#d03b3b",
+          "label": "✕ Wet: not usable"
+        },
+        {
+          "value": "Wet: height uncertain",
+          "color": "#9ca3af",
+          "label": "? Wet: height uncertain"
+        }
+      ]
+    }
+  },
+  "roads_rp100": {
+    "name": "Main roads and railways under water (1-in-100-year)",
+    "order": 6,
+    "visible": false,
+    "props": [
+      "Type",
+      "Name"
+    ],
+    "weight": 3,
+    "style": {
+      "by": "mode",
+      "classes": [
+        {
+          "value": "Road",
+          "color": "#1baf7a",
+          "label": "Road"
+        },
+        {
+          "value": "Railway",
+          "color": "#52514e",
+          "label": "Railway"
+        }
+      ]
+    }
+  }
+}
